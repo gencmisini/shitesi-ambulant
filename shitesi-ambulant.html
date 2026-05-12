@@ -3,25 +3,1191 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shitësi Ambulant</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Shitësi">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#16a34a">
+<title>Besi-Godanc</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green: #16a34a; --green-light: #dcfce7; --green-dark: #15803d;
-    --red: #dc2626; --red-light: #fee2e2;
-    --amber: #d97706; --amber-light: #fef3c7;
-    --blue: #2563eb; --blue-light: #dbeafe;
-    --bg: #f0fdf4; --surface: #ffffff; --surface2: #f7fef9;
-    --border: #bbf7d0; --text: #14532d; --text2: #166534;
-    --shadow: 0 2px 12px rgba(22,163,74,0.10);
-    --radius: 14px; --radius-sm: 8px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#16a34a;--green-light:#dcfce7;--green-dark:#15803d;
+  --red:#dc2626;--red-light:#fee2e2;
+  --amber:#d97706;--amber-light:#fef3c7;
+  --blue:#2563eb;--blue-light:#dbeafe;
+  --bg:#f0fdf4;--surface:#fff;--surface2:#f7fef9;
+  --border:#bbf7d0;--text:#14532d;--text2:#166534;
+  --shadow:0 2px 12px rgba(22,163,74,.10);
+  --radius:14px;--radius-sm:8px
+}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.header{background:var(--green);color:#fff;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(22,163,74,.25)}
+.header-title{font-size:18px;font-weight:800}
+.header-subtitle{font-size:10px;opacity:.8;font-weight:600}
+.cart-btn{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px}
+.cart-btn:hover{background:rgba(255,255,255,.3)}
+.cart-count{background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* NAV */
+.nav{display:flex;background:var(--surface);border-bottom:2px solid var(--border)}
+.nav-btn{flex:1;padding:10px 4px 8px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Nunito',sans-serif;font-size:10px;font-weight:700;color:#6b7280;border-bottom:3px solid transparent;transition:all .2s}
+.nav-btn .ni{font-size:18px}
+.nav-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--green-light)}
+
+/* PAGES */
+.page{display:none;padding:14px;max-width:600px;margin:0 auto}
+.page.active{display:block}
+
+/* CARD */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.card-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:12px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px}
+.search-input{width:100%;padding:10px 12px 10px 36px;border:1.5px solid var(--border);border-radius:50px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;background:var(--surface);color:var(--text);outline:none}
+.search-input:focus{border-color:var(--green)}
+
+/* PRODUCT GRID - 3 colona gjithmonë */
+.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.prod-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:transform .15s}
+.prod-card:hover{transform:translateY(-2px)}
+.prod-img-wrap{height:65px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:34px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.prod-img-wrap img{width:100%;height:100%;object-fit:cover}
+.stock-badge{position:absolute;top:4px;right:4px;background:var(--green);color:#fff;font-size:9px;font-weight:800;border-radius:20px;padding:1px 6px}
+.stock-badge.low{background:var(--amber)}
+.stock-badge.out{background:var(--red)}
+.cart-badge-prod{position:absolute;bottom:4px;right:4px;background:#2563eb;color:#fff;font-size:9px;font-weight:800;border-radius:20px;padding:1px 6px}
+.prod-body{padding:6px}
+.prod-name{font-size:11px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-price{font-size:12px;font-weight:800;color:var(--green);margin:2px 0 4px}
+.btn-sell{width:100%;padding:5px 3px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;cursor:pointer;transition:all .15s}
+.btn-sell:hover{background:var(--green-dark)}
+.btn-sell:active{transform:scale(.97)}
+.btn-sell:disabled{background:#d1d5db;cursor:not-allowed}
+
+/* FORMS */
+.form-row{margin-bottom:10px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.form-control{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--text);background:var(--surface);outline:none}
+.form-control:focus{border-color:var(--green)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+
+/* EMOJI */
+.emoji-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.emoji-opt{font-size:24px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:2px solid transparent;cursor:pointer;background:var(--surface2);transition:all .15s}
+.emoji-opt:hover{background:var(--green-light)}
+.emoji-opt.selected{border-color:var(--green);background:var(--green-light);transform:scale(1.1)}
+
+/* PHOTO */
+.photo-upload-area{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:18px;text-align:center;cursor:pointer;background:var(--surface2);transition:all .2s}
+.photo-upload-area:hover{border-color:var(--green);background:var(--green-light)}
+.photo-tab-row{display:flex;gap:6px;margin-bottom:8px}
+.photo-tab{flex:1;padding:6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-align:center;color:var(--text2)}
+.photo-tab.active{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
+
+/* BUTTONS */
+.btn{width:100%;padding:11px;border:none;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:var(--green-dark)}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:#b91c1c}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2);width:auto;padding:8px 16px}
+.btn-outline:hover{background:var(--green-light);border-color:var(--green)}
+
+/* ALERT */
+.alert{padding:9px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;margin-top:8px;display:none}
+.alert-success{background:var(--green-light);color:var(--green-dark);border:1px solid #86efac}
+.alert-error{background:var(--red-light);color:var(--red);border:1px solid #fca5a5}
+
+/* STOCK */
+.stock-item{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:7px}
+.stock-left{display:flex;align-items:center;gap:8px}
+.stock-name{font-size:12px;font-weight:800}
+.stock-info{font-size:10px;color:#6b7280;font-weight:600}
+.qty-controls{display:flex;align-items:center;gap:7px}
+.qty-btn{width:28px;height:28px;border:1.5px solid var(--border);border-radius:7px;background:var(--surface);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--text);line-height:1}
+.qty-btn:hover{background:var(--green-light);border-color:var(--green)}
+.qty-val{font-size:14px;font-weight:800;min-width:24px;text-align:center}
+
+/* STAT */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.stat-card{border-radius:var(--radius);padding:12px;text-align:center}
+.stat-card.green{background:var(--green-light);border:1.5px solid #86efac}
+.stat-card.red{background:var(--red-light);border:1.5px solid #fca5a5}
+.stat-card.amber{background:var(--amber-light);border:1.5px solid #fcd34d}
+.stat-card.blue{background:var(--blue-light);border:1.5px solid #93c5fd}
+.stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6b7280;margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:800}
+.stat-val.green{color:var(--green)}
+.stat-val.red{color:var(--red)}
+.stat-val.amber{color:var(--amber)}
+.stat-val.blue{color:var(--blue)}
+
+.sale-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:var(--radius-sm);margin-bottom:5px;background:var(--surface2);border:1px solid var(--border)}
+.sale-left{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700}
+.sale-price{font-size:13px;font-weight:800;color:var(--green)}
+.sale-time{font-size:10px;color:#9ca3af;font-weight:600}
+.purch-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:#4b5563}
+.empty{text-align:center;padding:24px 0;color:#9ca3af;font-size:13px;font-weight:600}
+.empty .ei{font-size:36px;margin-bottom:6px}
+.btn-del{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer}
+.btn-del:hover{background:#fecaca}
+.scroll-list{max-height:260px;overflow-y:auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:50px;font-size:12px;font-weight:700;z-index:999;transition:transform .3s ease;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* CART PANEL */
+.cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center}
+.cart-overlay.open{display:flex}
+.cart-panel{background:var(--surface);border-radius:22px 22px 0 0;width:100%;max-width:500px;max-height:92vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.cart-header{padding:16px 16px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cart-header-title{font-size:16px;font-weight:800}
+.cart-close{font-size:22px;cursor:pointer;color:#9ca3af;line-height:1}
+.cart-close:hover{color:var(--red)}
+.cart-body{flex:1;overflow-y:auto;padding:8px 16px}
+.cart-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px}
+.ci-emoji{font-size:28px;flex-shrink:0}
+.ci-img{width:40px;height:40px;border-radius:7px;object-fit:cover;flex-shrink:0}
+.ci-info{flex:1}
+.ci-name{font-size:13px;font-weight:800;color:var(--text)}
+.ci-price-wrap{display:flex;align-items:center;gap:4px;margin-top:3px}
+.ci-price-input{width:64px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:var(--green);background:var(--green-light);outline:none;text-align:center}
+.ci-price-input:focus{border-color:var(--green)}
+.ci-controls{display:flex;align-items:center;gap:7px}
+.ci-btn{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);line-height:1}
+.ci-btn:hover{background:var(--green-light);border-color:var(--green)}
+.ci-qty{font-size:15px;font-weight:800;min-width:22px;text-align:center}
+.ci-total{font-size:14px;font-weight:800;color:var(--green);min-width:55px;text-align:right}
+.cart-empty{text-align:center;padding:40px 0;color:#9ca3af}
+.cart-empty .cei{font-size:44px;margin-bottom:10px}
+.cart-footer{padding:14px 16px;border-top:2px solid var(--border);flex-shrink:0;background:var(--surface)}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cart-total-label{font-size:14px;font-weight:700;color:#6b7280}
+.cart-total-val{font-size:26px;font-weight:800;color:var(--green)}
+.cart-actions{display:flex;gap:8px}
+.btn-invoice{flex:1;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
+.btn-invoice:hover{background:var(--green-dark)}
+.btn-clear-cart{padding:12px 14px;background:var(--red-light);color:var(--red);border:1.5px solid #fca5a5;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer}
+.btn-clear-cart:hover{background:#fecaca}
+
+/* CLIENT MODAL */
+.client-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250;align-items:flex-end;justify-content:center}
+.client-overlay.open{display:flex}
+.client-panel{background:var(--surface);border-radius:22px 22px 0 0;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+.client-header{padding:16px 16px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.client-header-title{font-size:16px;font-weight:800}
+.client-close{font-size:22px;cursor:pointer;color:#9ca3af}
+.client-close:hover{color:var(--red)}
+.client-body{flex:1;overflow-y:auto;padding:12px 16px}
+.client-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s}
+.client-item:hover{border-color:var(--green);background:var(--green-light)}
+.client-item.selected{border-color:var(--green);background:var(--green-light)}
+.client-name{font-size:14px;font-weight:800;color:var(--text)}
+.client-phone{font-size:11px;color:#6b7280;font-weight:600}
+.client-check{font-size:18px;display:none}
+.client-item.selected .client-check{display:block}
+.client-new-form{background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px}
+.client-new-title{font-size:12px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.client-footer{padding:12px 16px;border-top:1.5px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.btn-skip{flex:1;padding:11px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--text2)}
+.btn-confirm-client{flex:2;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
+.btn-confirm-client:hover{background:var(--green-dark)}
+
+/* ACCORDION */
+.acc-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:2px 0;}
+.acc-header:hover .acc-title{color:var(--green)}
+.acc-arrow{font-size:16px;color:#9ca3af;transition:transform .25s;line-height:1}
+.acc-arrow.open{transform:rotate(180deg)}
+.acc-body{overflow:hidden;max-height:0;transition:max-height .3s ease, opacity .25s ease;opacity:0;}
+.acc-body.open{max-height:2000px;opacity:1;}
+
+/* FATURA */
+.fatura-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center;padding:16px}
+.fatura-overlay.open{display:flex}
+.fatura-box{background:#fff;border-radius:var(--radius);width:100%;max-width:380px;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease}
+.fatura-actions{display:flex;gap:8px;padding:12px 16px;border-top:1.5px solid #e5e7eb;background:#f9fafb;border-radius:0 0 var(--radius) var(--radius)}
+.btn-close-fatura{padding:11px 16px;background:transparent;border:1.5px solid #d1d5db;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280}
+#fatura-content{padding:16px 16px 0;font-family:'Courier New',Courier,monospace;font-size:11px;color:#111}
+.fat-top{text-align:center;margin-bottom:12px}
+.fat-biz{font-size:13px;font-weight:bold;letter-spacing:1px}
+.fat-nr{font-size:11px;color:#555;margin-top:3px}
+.fat-date{font-size:10px;color:#777;margin-top:2px}
+.fat-div{border:none;border-top:1px dashed #aaa;margin:10px 0}
+.fat-div-s{border:none;border-top:2px solid #111;margin:10px 0}
+.fat-col-hdr{display:flex;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;color:#777;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #ddd}
+.fat-row{display:flex;align-items:baseline;padding:5px 0;border-bottom:1px dotted #e0e0e0}
+.fr-name{flex:1;font-size:11px;font-weight:bold}
+.fr-qty{width:24px;text-align:center;font-size:10px;color:#444}
+.fr-unit{width:44px;text-align:right;font-size:10px;color:#444}
+.fr-tot{width:48px;text-align:right;font-size:11px;font-weight:bold}
+.fat-total-block{margin-top:8px}
+.fat-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}
+.fat-total-row.big{font-size:14px;font-weight:bold;border-top:2px solid #111;margin-top:4px;padding-top:6px}
+.fat-footer{text-align:center;margin-top:12px;padding-bottom:14px}
+.fat-footer p{font-size:10px;color:#777;margin-bottom:3px}
+.fat-thanks{font-size:12px;font-weight:bold;margin-top:8px;letter-spacing:.5px}
+
+@media print{
+  @page{size:58mm auto;margin:0}
+  body *{visibility:hidden!important}
+  #thermal-print-area,#thermal-print-area *{visibility:visible!important}
+  #thermal-print-area{
+    position:fixed!important;top:0!important;left:0!important;
+    width:54mm!important;padding:2mm!important;
+    font-family:'Courier New',monospace!important;
+    font-size:9pt!important;line-height:1.3!important;
+    color:#000!important;background:#fff!important;
   }
-  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  #thermal-print-area .fat-biz{font-size:11pt!important;font-weight:bold!important}
+  #thermal-print-area .fat-nr,
+  #thermal-print-area .fat-date{font-size:8pt!important}
+  #thermal-print-area .fat-col-hdr{font-size:7pt!important}
+  #thermal-print-area .fat-row{padding:2pt 0!important}
+  #thermal-print-area .fr-name{font-size:9pt!important}
+  #thermal-print-area .fr-qty{width:18pt!important}
+  #thermal-print-area .fr-unit{width:32pt!important}
+  #thermal-print-area .fr-tot{width:36pt!important}
+  #thermal-print-area .fat-total-row{font-size:9pt!important}
+  #thermal-print-area .fat-total-row.big{font-size:11pt!important;font-weight:bold!important}
+  #thermal-print-area .fat-footer p{font-size:8pt!important}
+  #thermal-print-area .fat-thanks{font-size:10pt!important}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">🛒 Besi-Godanc</div>
+    <div class="header-subtitle">Program menaxhimi shitjesh</div>
+  </div>
+  <button class="cart-btn" onclick="openCart()">
+    🛒 Shportë
+    <span class="cart-count" id="cart-count-badge">0</span>
+  </button>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="goPage('menu',this)"><span class="ni">🛍️</span>Menu</button>
+  <button class="nav-btn" onclick="goPage('shto',this)"><span class="ni">➕</span>Shto</button>
+  <button class="nav-btn" onclick="goPage('stok',this)"><span class="ni">📦</span>Stok</button>
+  <button class="nav-btn" onclick="goPage('raport',this)"><span class="ni">📊</span>Raport</button>
+</nav>
+
+<!-- MENU -->
+<div class="page active" id="page-menu">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-inp" type="text" placeholder="Kërko produkt..." oninput="renderMenu()">
+  </div>
+  <div id="prod-grid" class="prod-grid"></div>
+</div>
+
+<!-- SHTO -->
+<div class="page" id="page-shto">
+  <div class="card">
+    <div class="card-title">➕ Shto Produkt të Ri</div>
+    <div class="form-row">
+      <label class="form-label">Emri *</label>
+      <input class="form-control" id="f-name" type="text" placeholder="p.sh. Byrek me djathë">
+    </div>
+    <div class="form-row-2">
+      <div><label class="form-label">Çmimi Hyrës (€)</label><input class="form-control" id="f-cost" type="number" step="0.10" min="0" placeholder="0.80"></div>
+      <div><label class="form-label">Çmimi Shitjes (€) *</label><input class="form-control" id="f-price" type="number" step="0.10" min="0" placeholder="1.50"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Sasia fillestare</label>
+      <input class="form-control" id="f-qty" type="number" min="0" placeholder="10">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Foto (opsionale)</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <!-- Preview box i vogël -->
+        <div id="photo-preview-wrap" style="width:64px;height:64px;border-radius:10px;border:1.5px dashed var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden;cursor:pointer;" onclick="document.getElementById('photo-file-gallery').click()">
+          📷
+        </div>
+        <!-- Butonat -->
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+          <button type="button" class="btn btn-outline" style="padding:7px;font-size:12px;width:100%;display:flex;align-items:center;gap:6px;justify-content:center;" onclick="document.getElementById('photo-file-camera').click()">
+            📷 Kamera
+          </button>
+          <button type="button" class="btn btn-outline" style="padding:7px;font-size:12px;width:100%;display:flex;align-items:center;gap:6px;justify-content:center;" onclick="document.getElementById('photo-file-gallery').click()">
+            🖼️ Galeria
+          </button>
+        </div>
+      </div>
+      <!-- Input kamera -->
+      <input type="file" id="photo-file-camera" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
+      <!-- Input galeria -->
+      <input type="file" id="photo-file-gallery" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+    </div>
+    <button class="btn btn-green" onclick="addProduct()">✅ Shto Produktin</button>
+    <div class="alert alert-success" id="shto-ok">✅ Produkti u shtua!</div>
+    <div class="alert alert-error" id="shto-err">⚠️ Plotëso emrin dhe çmimin!</div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Produktet Ekzistuese</div>
+    <div id="prod-manage-list"></div>
+  </div>
+</div>
+
+<!-- STOK -->
+<div class="page" id="page-stok">
+  <div class="card">
+    <div class="card-title">📥 Regjistro Blerje</div>
+    <div class="form-row"><label class="form-label">Produkti</label><select class="form-control" id="stok-prod"></select></div>
+    <div class="form-row-2">
+      <div><label class="form-label">Sasia</label><input class="form-control" id="stok-qty" type="number" min="1" placeholder="20"></div>
+      <div><label class="form-label">Kosto totale (€)</label><input class="form-control" id="stok-cost" type="number" step="0.01" min="0" placeholder="8.00"></div>
+    </div>
+    <button class="btn btn-green" onclick="registerPurchase()">📥 Regjistro Hyrjen</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📦 Gjendja e Stokut</div>
+    <div id="stok-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🧾 Historiku i Blerjeve</div>
+    <div class="scroll-list" id="purchase-log"></div>
+  </div>
+</div>
+
+<!-- RAPORT -->
+<div class="page" id="page-raport">
+  <div id="raport-date" style="font-size:12px;color:#6b7280;font-weight:700;margin-bottom:10px;"></div>
+  <div class="stat-grid">
+    <div class="stat-card green"><div class="stat-label">💚 Hyrjet</div><div class="stat-val green" id="r-in">0.00€</div></div>
+    <div class="stat-card red"><div class="stat-label">❤️ Dalja</div><div class="stat-val red" id="r-out">0.00€</div></div>
+    <div class="stat-card amber"><div class="stat-label">⭐ Fitimi</div><div class="stat-val amber" id="r-profit">0.00€</div></div>
+    <div class="stat-card blue"><div class="stat-label">🔵 Fatura</div><div class="stat-val blue" id="r-count">0</div></div>
+  </div>
+
+  <div class="card">
+    <div class="acc-header" onclick="toggleAcc('acc-top')">
+      <span class="card-title" style="margin-bottom:0;">🏆 Top Produktet</span>
+      <span class="acc-arrow" id="arr-acc-top">▼</span>
+    </div>
+    <div class="acc-body" id="acc-top">
+      <div style="margin-top:12px;" id="r-top"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="acc-header" onclick="toggleAcc('acc-inv')">
+      <span class="card-title" style="margin-bottom:0;">🧾 Faturat e Lëshuara</span>
+      <span class="acc-arrow" id="arr-acc-inv">▼</span>
+    </div>
+    <div class="acc-body" id="acc-inv">
+      <div class="scroll-list" style="margin-top:12px;" id="r-invoices"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="acc-header" onclick="toggleAcc('acc-clients')">
+      <span class="card-title" style="margin-bottom:0;">👥 Lista e Klientëve</span>
+      <span class="acc-arrow" id="arr-acc-clients">▼</span>
+    </div>
+    <div class="acc-body" id="acc-clients">
+      <div style="margin-top:12px;" id="r-clients"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button class="btn btn-red" style="flex:1;" onclick="clearDay()">🗑️ Reset ditën</button>
+  </div>
+</div>
+
+<!-- CART PANEL -->
+<div class="cart-overlay" id="cart-overlay" onclick="handleOverlayClick(event)">
+  <div class="cart-panel">
+    <div class="cart-header">
+      <div>
+        <div class="cart-header-title">🛒 Shportë aktive</div>
+        <div style="font-size:11px;color:#6b7280;font-weight:600;margin-top:1px;">Shto artikuj nga Menu, pastaj shit</div>
+      </div>
+      <span class="cart-close" onclick="closeCart()">✕</span>
+    </div>
+    <div class="cart-body" id="cart-body"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span class="cart-total-label">TOTAL:</span>
+        <span class="cart-total-val" id="cart-total-display">0.00€</span>
+      </div>
+      <div class="cart-actions">
+        <button class="btn-clear-cart" onclick="clearCart()">🗑️ Pastro</button>
+        <button class="btn-invoice" onclick="openClientModal()">👤 Klient & Faturë</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="client-overlay" id="client-overlay">
+  <div class="client-panel">
+    <div class="client-header">
+      <div class="client-header-title">👤 Zgjedh Klientin</div>
+      <span class="client-close" onclick="closeClientModal()">✕</span>
+    </div>
+    <div class="client-body">
+      <!-- Kërko klient -->
+      <div style="position:relative;margin-bottom:12px;">
+        <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
+        <input class="form-control" id="client-search" type="text"
+          placeholder="Kërko ose shkruaj emër të ri..."
+          oninput="filterClients(this.value)"
+          style="padding-left:34px;">
+      </div>
+      <!-- Lista klientëve -->
+      <div id="client-list"></div>
+      <!-- Forma e re — fshehur fillimisht -->
+      <div id="client-new-form" style="display:none;background:var(--green-light);border:1.5px solid #86efac;border-radius:var(--radius-sm);padding:12px;margin-top:8px;">
+        <div style="font-size:12px;font-weight:800;color:var(--green-dark);margin-bottom:8px;">➕ Regjistro klient të ri</div>
+        <div class="form-row" style="margin-bottom:8px;">
+          <input class="form-control" id="new-client-name" type="text" placeholder="Emri *">
+        </div>
+        <div class="form-row" style="margin-bottom:8px;">
+          <input class="form-control" id="new-client-phone" type="tel" placeholder="Telefoni (opsional)">
+        </div>
+        <button class="btn btn-green" style="padding:8px;" onclick="addNewClient()">✅ Regjistro & Zgjedh</button>
+      </div>
+    </div>
+    <div class="client-footer">
+      <button class="btn-skip" onclick="skipClient()">Pa klient</button>
+      <button class="btn-confirm-client" onclick="confirmClient()">✅ Konfirmo & Faturë</button>
+    </div>
+  </div>
+</div>
+
+<!-- FATURA MODAL -->
+<div class="fatura-overlay" id="fatura-overlay" onclick="handleFaturaOverlay(event)">
+  <div class="fatura-box">
+    <div id="fatura-content"></div>
+    <div class="fatura-actions">
+      <button class="btn-close-fatura" onclick="closeFatura()">✕ Mbyll</button>
+      <button class="btn-close-fatura" style="flex:1;background:#2563eb;color:#fff;border-color:#2563eb;font-size:12px;font-weight:800;" onclick="saveA4Image()">📥 RUAJ FOTO</button>
+      <button class="btn-close-fatura" style="flex:1;background:var(--green);color:#fff;border-color:var(--green);font-size:12px;font-weight:800;" onclick="printFatura()">🖨️ PRINTO</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT DETAIL MODAL -->
+<div class="client-overlay" id="client-detail-overlay" onclick="handleClientDetailOverlay(event)">
+  <div class="client-panel" style="max-height:90vh;">
+    <div class="client-header">
+      <div>
+        <div class="client-header-title" id="cd-title">👤 Klienti</div>
+        <div id="cd-subtitle" style="font-size:11px;color:#6b7280;font-weight:600;margin-top:2px;"></div>
+      </div>
+      <span class="client-close" onclick="closeClientDetail()">✕</span>
+    </div>
+    <div class="client-body">
+      <!-- Stats -->
+      <div class="stat-grid" style="margin-bottom:14px;" id="cd-stats"></div>
+      <!-- Faturat -->
+      <div style="font-size:12px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📋 Historiku i Faturave</div>
+      <div id="cd-invoices"></div>
+    </div>
+  </div>
+</div>
+
+<div id="thermal-print-area" style="display:none;"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE = 'shitesi_v4';
+let state = JSON.parse(localStorage.getItem(STORE) || 'null') || {
+  products:[
+    {id:1,name:'Byrek',emoji:'🥪',img:null,price:1.00,cost:0.50,stock:20},
+    {id:2,name:'Kafe',emoji:'☕',img:null,price:0.80,cost:0.20,stock:50},
+    {id:3,name:'Ujë',emoji:'💧',img:null,price:0.50,cost:0.10,stock:30}
+  ],
+  sales:[],invoices:[],purchases:[],clients:[],
+  nextId:10,invoiceNum:1,clientNextId:1
+};
+if(!state.clients){state.clients=[];state.clientNextId=1;}
+let cart={};
+let selectedClientId=null;
+function save(){localStorage.setItem(STORE,JSON.stringify(state))}
+
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='menu') renderMenu();
+  if(id==='stok') renderStok();
+  if(id==='raport') renderRaport();
+  if(id==='shto') renderManageList();
+}
+
+/* EMOJI */
+let uploadedPhoto=null;
+function handlePhoto(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    uploadedPhoto=e.target.result;
+    const wrap=document.getElementById('photo-preview-wrap');
+    wrap.innerHTML=`<img src="${uploadedPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
+    wrap.style.border='1.5px solid var(--green)';
+    wrap.onclick=()=>showPhotoOptions();
+  };
+  r.readAsDataURL(file);
+}
+function showPhotoOptions(){
+  if(!uploadedPhoto)return;
+  if(confirm('A dëshiron ta heqësh foton?')) removePhoto();
+}
+function removePhoto(){
+  uploadedPhoto=null;
+  ['photo-file-camera','photo-file-gallery'].forEach(id=>document.getElementById(id).value='');
+  const wrap=document.getElementById('photo-preview-wrap');
+  wrap.innerHTML='📷';
+  wrap.style.border='1.5px dashed var(--border)';
+  wrap.onclick=()=>document.getElementById('photo-file-gallery').click();
+}
+
+/* PRODUCTS */
+function addProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  const price=parseFloat(document.getElementById('f-price').value);
+  const cost=parseFloat(document.getElementById('f-cost').value)||0;
+  const qty=parseInt(document.getElementById('f-qty').value)||0;
+  const ok=document.getElementById('shto-ok'),err=document.getElementById('shto-err');
+  ok.style.display='none';err.style.display='none';
+  if(!name||isNaN(price)||price<=0){err.style.display='block';return}
+  state.products.push({id:state.nextId++,name,emoji:'🛒',img:uploadedPhoto||null,price,cost,stock:qty});
+  save();
+  ['f-name','f-price','f-cost','f-qty'].forEach(id=>document.getElementById(id).value='');
+  removePhoto();  ok.style.display='block';setTimeout(()=>ok.style.display='none',2500);
+  renderManageList();
+}
+function deleteProduct(id){
+  if(!confirm('A je i sigurt?'))return;
+  state.products=state.products.filter(p=>p.id!==id);
+  delete cart[id];save();renderManageList();renderMenu();updateCartBadge();
+}
+function renderManageList(){
+  const el=document.getElementById('prod-manage-list');
+  if(!state.products.length){el.innerHTML='<div class="empty">Nuk ka produkte</div>';return}
+  el.innerHTML=state.products.map(p=>`
+    <div class="stock-item">
+      <div class="stock-left">
+        <span style="font-size:22px;">${p.img?`<img src="${p.img}" style="width:30px;height:30px;object-fit:cover;border-radius:6px;">`:p.emoji}</span>
+        <div><div class="stock-name">${p.name}</div><div class="stock-info">${p.price.toFixed(2)}€ | stok:${p.stock}</div></div>
+      </div>
+      <button class="btn-del" onclick="deleteProduct(${p.id})">🗑️ Fshi</button>
+    </div>`).join('');
+}
+
+/* MENU */
+function renderMenu(){
+  const filter=document.getElementById('search-inp').value.toLowerCase();
+  const g=document.getElementById('prod-grid');
+  const list=state.products.filter(p=>p.name.toLowerCase().includes(filter));
+  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:span 3"><div class="ei">🔍</div>Nuk u gjet asnjë produkt</div>';return}
+  g.innerHTML=list.map(p=>{
+    const inCart=cart[p.id]?cart[p.id].qty:0;
+    const sc=p.stock===0?'out':p.stock<=3?'low':'';
+    const st=p.stock===0?'Mbaruar':p.stock+' cope';
+    const imgHtml=p.img?`<img src="${p.img}" style="width:100%;height:100%;object-fit:cover;">`:`<span style="font-size:34px;">${p.emoji}</span>`;
+    return `<div class="prod-card">
+      <div class="prod-img-wrap">
+        ${imgHtml}
+        <span class="stock-badge ${sc}">${st}</span>
+        ${inCart>0?`<span class="cart-badge-prod">🛒${inCart}</span>`:''}
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-price">${p.price.toFixed(2)}€</div>
+        <button class="btn-sell" onclick="addToCart(${p.id})" ${p.stock===0?'disabled':''}>
+          ${p.stock===0?'❌ Mbaruar':'🛒 SHTO'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* CART */
+function addToCart(id){
+  const p=state.products.find(x=>x.id===id);
+  if(!p||p.stock===0)return;
+  const cur=cart[id]||{qty:0,price:p.price};
+  if(cur.qty>=p.stock){showToast('⚠️ Nuk ka më stok!');return}
+  cart[id]={qty:cur.qty+1,price:cur.price,type:cur.type||'cope'};
+  updateCartBadge();renderMenu();
+  showToast(`✅ ${p.emoji} ${p.name} u shtua`);
+}
+function removeFromCart(id){
+  if(!cart[id])return;
+  cart[id].qty--;
+  if(cart[id].qty<=0)delete cart[id];
+  updateCartBadge();renderCart();renderMenu();
+}
+function addMoreToCart(id){
+  const p=state.products.find(x=>x.id===id);if(!p)return;
+  if(!cart[id])cart[id]={qty:0,price:p.price,type:'cope'};
+  if(cart[id].qty>=p.stock){showToast('⚠️ Nuk ka më stok!');return}
+  cart[id].qty++;
+  updateCartBadge();renderCart();renderMenu();
+}
+function updateCartQty(id,val){
+  const v=parseInt(val);
+  const p=state.products.find(x=>x.id===id);
+  if(!cart[id]||!p||isNaN(v)||v<1)return;
+  if(v>p.stock){showToast(`⚠️ Stoku max: ${p.stock}`);cart[id].qty=p.stock;}
+  else cart[id].qty=v;
+  updateCartBadge();
+  const tot=document.getElementById('cart-total-display');
+  if(tot)tot.textContent=cartTotal().toFixed(2)+'€';
+  const itemTot=document.getElementById('ci-tot-'+id);
+  if(itemTot)itemTot.textContent=(cart[id].price*cart[id].qty).toFixed(2)+'€';
+  renderMenu();
+}
+function updateCartPrice(id,val){
+  const v=parseFloat(val);
+  if(!cart[id]||isNaN(v)||v<0)return;
+  cart[id].price=v;
+  const tot=document.getElementById('cart-total-display');
+  if(tot)tot.textContent=cartTotal().toFixed(2)+'€';
+  const itemTot=document.getElementById('ci-tot-'+id);
+  if(itemTot)itemTot.textContent=(v*cart[id].qty).toFixed(2)+'€';
+}
+function clearCart(){
+  if(!Object.keys(cart).length)return;
+  if(!confirm('A dëshiron ta pastrosh shportën?'))return;
+  cart={};updateCartBadge();renderCart();renderMenu();
+}
+function cartTotal(){return Object.entries(cart).reduce((s,[id,item])=>s+(item.price*item.qty),0)}
+function cartItemCount(){return Object.values(cart).reduce((s,item)=>s+item.qty,0)}
+function updateCartBadge(){document.getElementById('cart-count-badge').textContent=cartItemCount()}
+
+function openCart(){renderCart();document.getElementById('cart-overlay').classList.add('open')}
+function closeCart(){document.getElementById('cart-overlay').classList.remove('open')}
+function handleOverlayClick(e){if(e.target===document.getElementById('cart-overlay'))closeCart()}
+
+function renderCart(){
+  const body=document.getElementById('cart-body');
+  const items=Object.entries(cart);
+  if(!items.length){
+    body.innerHTML='<div class="cart-empty"><div class="cei">🛒</div><div style="font-size:14px;font-weight:700;color:#9ca3af;">Shporta është bosh</div></div>';
+    document.getElementById('cart-total-display').textContent='0.00€';return;
+  }
+  body.innerHTML=items.map(([id,item])=>{
+    const p=state.products.find(x=>x.id===parseInt(id));if(!p)return'';
+    const imgHtml=p.img?`<img class="ci-img" src="${p.img}">`:`<span class="ci-emoji">${p.emoji}</span>`;
+    return `<div class="cart-item">
+      ${imgHtml}
+      <div class="ci-info">
+        <div class="ci-name">${p.name}</div>
+        <div class="ci-price-wrap">
+          <span style="font-size:11px;color:#6b7280;font-weight:600;">€</span>
+          <input class="ci-price-input" type="number" step="0.10" min="0" value="${item.price.toFixed(2)}" oninput="updateCartPrice(${p.id},this.value)" title="Ndrysho çmimin">
+          <span style="font-size:10px;color:#9ca3af;">/ cope</span>
+        </div>
+      </div>
+      <div class="ci-controls">
+        <button class="ci-btn" onclick="removeFromCart(${p.id})">−</button>
+        <input type="number" min="1" max="${p.stock}" value="${item.qty}"
+          oninput="updateCartQty(${p.id},this.value)"
+          style="width:40px;text-align:center;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;border:1.5px solid var(--border);border-radius:6px;padding:2px 4px;color:var(--text);background:var(--surface);outline:none;">
+        <button class="ci-btn" onclick="addMoreToCart(${p.id})">+</button>
+      </div>
+      <div class="ci-total" id="ci-tot-${p.id}">${(item.price*item.qty).toFixed(2)}€</div>
+    </div>`;
+  }).join('');
+  document.getElementById('cart-total-display').textContent=cartTotal().toFixed(2)+'€';
+}
+
+/* CLIENTS */
+function openClientModal(){
+  if(!Object.keys(cart).length){showToast('⚠️ Shporta është bosh!');return}
+  selectedClientId=null;
+  document.getElementById('client-search').value='';
+  document.getElementById('new-client-form') && (document.getElementById('client-new-form').style.display='none');
+  document.getElementById('new-client-name').value='';
+  document.getElementById('new-client-phone').value='';
+  renderClientList('');
+  document.getElementById('client-overlay').classList.add('open');
+}
+function closeClientModal(){document.getElementById('client-overlay').classList.remove('open')}
+
+function filterClients(val){
+  const q=val.trim().toLowerCase();
+  renderClientList(q);
+  const newForm=document.getElementById('client-new-form');
+  const nameInp=document.getElementById('new-client-name');
+  if(q.length>0){
+    // Check if any client matches
+    const hasMatch=state.clients.some(c=>c.name.toLowerCase().includes(q));
+    if(!hasMatch){
+      // Show register form pre-filled with typed name
+      newForm.style.display='block';
+      nameInp.value=val.trim();
+    } else {
+      newForm.style.display='none';
+    }
+  } else {
+    newForm.style.display='none';
+  }
+}
+
+function renderClientList(q){
+  const el=document.getElementById('client-list');
+  const filtered=q
+    ? state.clients.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q))
+    : state.clients;
+
+  if(!state.clients.length){
+    el.innerHTML='<div class="empty" style="padding:12px 0;"><div class="ei">👤</div>Asnjë klient i regjistruar<br><small style="color:#9ca3af;">Shkruaj emrin lart për të shtuar</small></div>';
+    return;
+  }
+  if(!filtered.length){
+    el.innerHTML='<div class="empty" style="padding:8px 0;color:#9ca3af;font-size:12px;">Nuk u gjet — do të regjistrohet si i ri ↓</div>';
+    return;
+  }
+  el.innerHTML=filtered.map(c=>`
+    <div class="client-item ${selectedClientId===c.id?'selected':''}" onclick="selectClient(${c.id})">
+      <div>
+        <div class="client-name">👤 ${c.name}</div>
+        ${c.phone?`<div class="client-phone">📞 ${c.phone}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:10px;color:#9ca3af;">${c.invoices||0} fat.</span>
+        <span class="client-check">✅</span>
+        <button onclick="event.stopPropagation();deleteClient(${c.id})" style="background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function selectClient(id){
+  selectedClientId=selectedClientId===id?null:id;
+  renderClientList(document.getElementById('client-search').value.toLowerCase());
+  if(selectedClientId){
+    // Hide new form when selecting existing
+    document.getElementById('client-new-form').style.display='none';
+    document.getElementById('client-search').value=state.clients.find(c=>c.id===id)?.name||'';
+  }
+}
+
+function addNewClient(){
+  const name=document.getElementById('new-client-name').value.trim();
+  if(!name){showToast('⚠️ Shkruaj emrin!');return}
+  const phone=document.getElementById('new-client-phone').value.trim();
+  const c={id:state.clientNextId++,name,phone,invoices:0};
+  state.clients.push(c);save();
+  selectedClientId=c.id;
+  document.getElementById('client-search').value=name;
+  document.getElementById('client-new-form').style.display='none';
+  document.getElementById('new-client-name').value='';
+  document.getElementById('new-client-phone').value='';
+  renderClientList('');
+  showToast(`✅ ${name} u regjistrua!`);
+}
+
+function deleteClient(id){
+  if(!confirm('A dëshiron ta fshish këtë klient?'))return;
+  state.clients=state.clients.filter(c=>c.id!==id);
+  if(selectedClientId===id)selectedClientId=null;
+  save();renderClientList(document.getElementById('client-search').value.toLowerCase());
+}
+function skipClient(){closeClientModal();generateInvoice()}
+function confirmClient(){closeClientModal();generateInvoice()}
+
+/* INVOICE */
+function generateInvoice(){
+  const items=Object.entries(cart);
+  if(!items.length){showToast('⚠️ Shporta është bosh!');return}
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const timeStr=now.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const invNum=String(state.invoiceNum).padStart(4,'0');
+
+  const invItems=items.map(([id,item])=>{
+    const p=state.products.find(x=>x.id===parseInt(id));if(!p)return null;
+    return{name:p.name,emoji:p.emoji,price:item.price,cost:p.cost,qty:item.qty,type:item.type||'cope',total:item.price*item.qty};
+  }).filter(Boolean);
+
+  const subtotal=invItems.reduce((s,i)=>s+i.total,0);
+  const totalCost=invItems.reduce((s,i)=>s+i.cost*i.qty,0);
+  const totalItems=invItems.reduce((s,i)=>s+i.qty,0);
+
+  invItems.forEach(item=>{
+    const p=state.products.find(x=>x.name===item.name);
+    if(p){
+      p.stock=Math.max(0,p.stock-item.qty);
+      for(let i=0;i<item.qty;i++)
+        state.sales.push({name:item.name,emoji:item.emoji,price:item.price,cost:item.cost,time:timeStr,ts:now.getTime()});
+    }
+  });
+
+  const client=selectedClientId?state.clients.find(c=>c.id===selectedClientId):null;
+  if(client)client.invoices=(client.invoices||0)+1;
+
+  state.invoices.push({num:invNum,date:dateStr,time:timeStr,items:invItems,total:subtotal,profit:subtotal-totalCost,clientName:client?client.name:null});
+  state.invoiceNum++;save();
+
+  const clientLine=client?`<div class="fat-date" style="margin-top:3px;">👤 <strong>${client.name}</strong>${client.phone?' · '+client.phone:''}</div>`:'';
+
+  const rows=invItems.map(item=>`
+    <div class="fat-row">
+      <div class="fr-name">${item.emoji} ${item.name}</div>
+      <div class="fr-qty">${item.qty}</div>
+      <div class="fr-unit">${item.price.toFixed(2)}€</div>
+      <div class="fr-tot">${item.total.toFixed(2)}€</div>
+    </div>`).join('');
+
+  document.getElementById('fatura-content').innerHTML=`
+    <div class="fat-top">
+      <div class="fat-biz">★ BESI-GODANC ★</div>
+      <div class="fat-nr">Fatura Nr: <strong>#${invNum}</strong></div>
+      <div class="fat-date">Datë: ${dateStr} | Ora: ${timeStr}</div>
+      ${clientLine}
+    </div>
+    <hr class="fat-div-s">
+    <div class="fat-col-hdr">
+      <span style="flex:1;">Artikulli</span>
+      <span style="width:30px;text-align:center;">Sas</span>
+      <span style="width:52px;text-align:right;">Çmim</span>
+      <span style="width:58px;text-align:right;">Total</span>
+    </div>
+    ${rows}
+    <hr class="fat-div">
+    <div class="fat-total-block">
+      <div class="fat-total-row"><span>Artikuj gjithsej:</span><span>${totalItems} cope</span></div>
+      <div class="fat-total-row big"><span>TOTAL:</span><span>${subtotal.toFixed(2)} €</span></div>
+    </div>
+    <hr class="fat-div">
+    <div class="fat-footer">
+      <p>Mënyra e pagesës: Cash</p>
+      <div class="fat-thanks">★ Faleminderit! ★</div>
+    </div>`;
+
+  cart={};updateCartBadge();renderMenu();closeCart();
+  selectedClientId=null;
+  document.getElementById('fatura-overlay').classList.add('open');
+  loadHtml2Canvas(()=>{});
+  // Ngarko librarianë paraprakisht
+  showToast(`✅ Fatura #${invNum} — ${subtotal.toFixed(2)}€`);
+}
+
+function closeFatura(){document.getElementById('fatura-overlay').classList.remove('open')}
+function handleFaturaOverlay(e){if(e.target===document.getElementById('fatura-overlay'))closeFatura()}
+
+function printFatura(){
+  const content=document.getElementById('fatura-content').innerHTML;
+  const ta=document.getElementById('thermal-print-area');
+  ta.innerHTML=content;
+  ta.style.display='block';
+  window.print();
+  setTimeout(()=>{ta.style.display='none';},1000);
+}
+
+function loadHtml2Canvas(cb){
+  if(typeof html2canvas!=='undefined'){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+  s.onload=cb;
+  s.onerror=()=>showToast('⚠️ Nuk u ngarkua libraria!');
+  document.head.appendChild(s);
+}
+
+function saveA4Image(){
+  const btn=document.querySelector('.fatura-actions button:nth-child(2)');
+  const origHTML=btn.innerHTML;
+  btn.innerHTML='⏳...';
+  btn.disabled=true;
+
+  loadHtml2Canvas(()=>{
+    const el=document.getElementById('fatura-content');
+    html2canvas(el,{
+      backgroundColor:'#ffffff',
+      scale:4,
+      useCORS:true,
+      logging:false,
+      width:el.scrollWidth,
+      height:el.scrollHeight,
+    }).then(canvas=>{
+      // Krijo canvas A4 (210mm x 297mm @ 96dpi = 794x1123px)
+      const a4 = document.createElement('canvas');
+      a4.width = 794;
+      a4.height = 1123;
+      const ctx = a4.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0,0,a4.width,a4.height);
+      // Vendos faturën qendrore lart
+      const scale = Math.min((a4.width - 80) / canvas.width, (a4.height - 80) / canvas.height);
+      const w = canvas.width * scale;
+      const h = canvas.height * scale;
+      const x = (a4.width - w) / 2;
+      const y = 40;
+      ctx.drawImage(canvas, x, y, w, h);
+
+      a4.toBlob(blob=>{
+        btn.innerHTML=origHTML;btn.disabled=false;
+        const file=new File([blob],'fatura-a4.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'Fatura A4'})
+            .catch(()=>{});
+        } else {
+          // Shfaq si imazh — mbaj shtypur për ruajtje
+          const old=document.getElementById('img-overlay');
+          if(old)old.remove();
+          const overlay=document.createElement('div');
+          overlay.id='img-overlay';
+          overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;';
+          const hdr=document.createElement('div');
+          hdr.style.cssText='width:100%;padding:12px 16px;background:#111;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;';
+          hdr.innerHTML=`<button onclick="document.getElementById('img-overlay').remove()" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;font-weight:700;padding:7px 14px;border-radius:20px;font-family:Nunito,sans-serif;cursor:pointer;">✕ Mbyll</button><span style="color:#fff;font-size:13px;font-weight:700;font-family:Nunito,sans-serif;">📥 Mbaj shtypur → Ruaj Foton</span><div style="width:70px;"></div>`;
+          const sc=document.createElement('div');
+          sc.style.cssText='flex:1;overflow-y:auto;width:100%;display:flex;flex-direction:column;align-items:center;padding:16px;';
+          const img=document.createElement('img');
+          img.src=URL.createObjectURL(blob);
+          img.style.cssText='width:100%;max-width:500px;border-radius:6px;display:block;-webkit-touch-callout:default;';
+          sc.appendChild(img);
+          overlay.appendChild(hdr);
+          overlay.appendChild(sc);
+          document.body.appendChild(overlay);
+        }
+      },'image/png',1.0);
+    }).catch(()=>{
+      showToast('⚠️ Gabim!');
+      btn.innerHTML=origHTML;btn.disabled=false;
+    });
+  });
+
+  // Preload
+  loadHtml2Canvas(()=>{});
+}
+
+
+/* STOK */
+function renderStok(){
+  const sel=document.getElementById('stok-prod');
+  sel.innerHTML=state.products.map(p=>`<option value="${p.id}">${p.emoji} ${p.name} (stok:${p.stock})</option>`).join('');
+  const sl=document.getElementById('stok-list');
+  if(!state.products.length){sl.innerHTML='<div class="empty"><div class="ei">📦</div>Nuk ka produkte</div>';return}
+  sl.innerHTML=state.products.map(p=>`
+    <div class="stock-item">
+      <div class="stock-left">
+        <span style="font-size:24px;">${p.img?`<img src="${p.img}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">`:p.emoji}</span>
+        <div><div class="stock-name">${p.name}</div><div class="stock-info">${p.price.toFixed(2)}€ | kosto ${p.cost.toFixed(2)}€</div></div>
+      </div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="adjStock(${p.id},-1)">−</button>
+        <span class="qty-val">${p.stock}</span>
+        <button class="qty-btn" onclick="adjStock(${p.id},1)">+</button>
+      </div>
+    </div>`).join('');
+  const pl=document.getElementById('purchase-log');
+  if(!state.purchases.length){pl.innerHTML='<div class="empty"><div class="ei">🧾</div>Asnjë blerje</div>';return}
+  pl.innerHTML=state.purchases.slice().reverse().slice(0,30).map(x=>`
+    <div class="purch-row"><span>📥 ${x.emoji||''} ${x.name} +${x.qty}</span><span>${x.cost?x.cost.toFixed(2)+'€':'—'}</span><span style="color:#9ca3af">${x.time}</span></div>`).join('');
+}
+function adjStock(id,d){
+  const p=state.products.find(x=>x.id===id);if(!p)return;
+  p.stock=Math.max(0,p.stock+d);save();renderStok();
+}
+function registerPurchase(){
+  const id=parseInt(document.getElementById('stok-prod').value);
+  const qty=parseInt(document.getElementById('stok-qty').value);
+  const cost=parseFloat(document.getElementById('stok-cost').value);
+  if(!qty||qty<=0){showToast('⚠️ Shkruaj sasinë!');return}
+  const p=state.products.find(x=>x.id===id);if(!p)return;
+  p.stock+=qty;
+  const now=new Date();
+  state.purchases.push({name:p.name,emoji:p.emoji,qty,cost:isNaN(cost)?0:cost,time:now.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit'})});
+  save();
+  document.getElementById('stok-qty').value='';
+  document.getElementById('stok-cost').value='';
+  renderStok();showToast(`📥 +${qty} ${p.name} shtuar`);
+}
+
+/* RAPORT */
+function renderRaport(){
+  const today=new Date().toLocaleDateString('sq-AL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('raport-date').textContent='📅 '+today;
+  const totalIn=state.sales.reduce((s,x)=>s+x.price,0);
+  const totalCost=state.sales.reduce((s,x)=>s+x.cost,0);
+  const profit=totalIn-totalCost;
+  document.getElementById('r-in').textContent=totalIn.toFixed(2)+'€';
+  document.getElementById('r-out').textContent=totalCost.toFixed(2)+'€';
+  document.getElementById('r-profit').textContent=profit.toFixed(2)+'€';
+  document.getElementById('r-count').textContent=state.invoices.length;
+
+  const counts={};
+  state.sales.forEach(s=>{
+    if(!counts[s.name])counts[s.name]={count:0,total:0,emoji:s.emoji};
+    counts[s.name].count++;counts[s.name].total+=s.price;
+  });
+  const top=Object.entries(counts).sort((a,b)=>b[1].count-a[1].count).slice(0,5);
+  document.getElementById('r-top').innerHTML=top.length?top.map(([name,d],i)=>`
+    <div class="sale-row">
+      <div class="sale-left"><span>${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span><span>${d.emoji} ${name}</span></div>
+      <span style="color:#6b7280;font-size:11px;font-weight:700;">${d.count}x</span>
+      <span class="sale-price">${d.total.toFixed(2)}€</span>
+    </div>`).join(''):'<div class="empty">Asnjë shitje sot</div>';
+
+  const ri=document.getElementById('r-invoices');
+  if(!state.invoices.length){ri.innerHTML='<div class="empty"><div class="ei">🧾</div>Asnjë faturë sot</div>';return}
+  ri.innerHTML=state.invoices.slice().reverse().map(inv=>`
+    <div class="sale-row" style="flex-wrap:wrap;gap:4px;cursor:pointer;" onclick="showOldInvoice(${state.invoices.indexOf(inv)})">
+      <div class="sale-left" style="flex:1;">
+        <span>🧾</span>
+        <div>
+          <div style="font-size:12px;font-weight:800;">Fatura #${inv.num} ${inv.clientName?'<span style="color:var(--blue);font-weight:700;">· 👤 '+inv.clientName+'</span>':''}</div>
+          <div style="font-size:10px;color:#6b7280;">${inv.items.map(i=>i.emoji+' '+i.name+' ×'+i.qty).join(', ')}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="sale-price">${inv.total.toFixed(2)}€</div>
+        <div class="sale-time">${inv.time}</div>
+      </div>
+    </div>`).join('');
+
+  renderClientsRaport();
+}
+
+function showOldInvoice(idx){
+  const inv=state.invoices[idx];if(!inv)return;
+  const rows=inv.items.map(item=>`
+    <div class="fat-row">
+      <div class="fr-name">${item.emoji} ${item.name}</div>
+      <div class="fr-qty">${item.qty}</div>
+      <div class="fr-unit">${item.price.toFixed(2)}€</div>
+      <div class="fr-tot">${item.total.toFixed(2)}€</div>
+    </div>`).join('');
+  const totalItems=inv.items.reduce((s,i)=>s+i.qty,0);
+  const oldClientLine=inv.clientName?`<div class="fat-date" style="margin-top:3px;">👤 <strong>${inv.clientName}</strong></div>`:'';
+  document.getElementById('fatura-content').innerHTML=`
+    <div class="fat-top">
+      <div class="fat-biz">★ BESI-GODANC ★</div>
+      <div class="fat-nr">Fatura Nr: <strong>#${inv.num}</strong></div>
+      <div class="fat-date">Datë: ${inv.date} | Ora: ${inv.time}</div>
+      ${oldClientLine}
+    </div>
+    <hr class="fat-div-s">
+    <div class="fat-col-hdr">
+      <span style="flex:1;">Artikulli</span>
+      <span style="width:30px;text-align:center;">Sas</span>
+      <span style="width:52px;text-align:right;">Çmim</span>
+      <span style="width:58px;text-align:right;">Total</span>
+    </div>
+    ${rows}
+    <hr class="fat-div">
+    <div class="fat-total-block">
+      <div class="fat-total-row"><span>Artikuj gjithsej:</span><span>${totalItems} cope</span></div>
+      <div class="fat-total-row big"><span>TOTAL:</span><span>${inv.total.toFixed(2)} €</span></div>
+    </div>
+    <hr class="fat-div">
+    <div class="fat-footer"><p>Mënyra e pagesës: Cash</p><div class="fat-thanks">★ Faleminderit! ★</div></div>`;
+  document.getElementById('fatura-overlay').classList.add('open');
+}
+
+function clearDay(){
+  if(!confirm('A je i sigurt? Shitjet dhe faturat e sotme do të fshihen. Stoku mbetet.'))return;
+  state.sales=[];state.invoices=[];state.invoiceNum=1;
+  save();renderRaport();showToast('🗑️ Dita u pastrua');
+}
+
+/* CLIENTS IN RAPORT */
+function renderClientsRaport(){
+  const el=document.getElementById('r-clients');
+  if(!el)return;
+  if(!state.clients.length){
+    el.innerHTML='<div class="empty"><div class="ei">👥</div>Asnjë klient i regjistruar</div>';return;
+  }
+  el.innerHTML=state.clients.map(c=>{
+    // Calculate total spent by this client
+    const clientInvoices=state.invoices.filter(inv=>inv.clientName===c.name);
+    const totalSpent=clientInvoices.reduce((s,inv)=>s+inv.total,0);
+    const lastInv=clientInvoices.length?clientInvoices[clientInvoices.length-1]:null;
+    return `<div class="client-item" style="cursor:pointer;" onclick="openClientDetail(${c.id})">
+      <div style="flex:1;">
+        <div class="client-name">👤 ${c.name}</div>
+        <div class="client-phone">${c.phone?'📞 '+c.phone+' · ':''} ${clientInvoices.length} fatura · ${totalSpent.toFixed(2)}€</div>
+        ${lastInv?`<div style="font-size:10px;color:#9ca3af;margin-top:2px;">Fatura e fundit: ${lastInv.date} ${lastInv.time}</div>`:''}
+      </div>
+      <span style="font-size:18px;color:#9ca3af;">›</span>
+    </div>`;
+  }).join('');
+}
+
+/* CLIENT DETAIL MODAL */
+function openClientDetail(id){
+  const c=state.clients.find(x=>x.id===id);
+  if(!c)return;
+
+  const clientInvoices=state.invoices.filter(inv=>inv.clientName===c.name);
+  const totalSpent=clientInvoices.reduce((s,inv)=>s+inv.total,0);
+  const totalItems=clientInvoices.reduce((s,inv)=>s+inv.items.reduce((a,i)=>a+i.qty,0),0);
+
+  document.getElementById('cd-title').textContent=`👤 ${c.name}`;
+  document.getElementById('cd-subtitle').textContent=c.phone?'📞 '+c.phone:'';
+
+  // Stats
+  document.getElementById('cd-stats').innerHTML=`
+    <div class="stat-card green"><div class="stat-label">💰 Totali</div><div class="stat-val green" style="font-size:18px;">${totalSpent.toFixed(2)}€</div></div>
+    <div class="stat-card blue"><div class="stat-label">🧾 Fatura</div><div class="stat-val blue" style="font-size:18px;">${clientInvoices.length}</div></div>
+    <div class="stat-card amber"><div class="stat-label">📦 Artikuj</div><div class="stat-val amber" style="font-size:18px;">${totalItems}</div></div>
+    <div class="stat-card green" style="background:var(--surface2);border-color:var(--border);">
+      <div class="stat-label">📅 Klient prej</div>
+      <div style="font-size:12px;font-weight:800;color:var(--text);margin-top:4px;">${clientInvoices.length?clientInvoices[0].date:'—'}</div>
+    </div>`;
+
+  // Invoices list
+  const inv=document.getElementById('cd-invoices');
+  if(!clientInvoices.length){
+    inv.innerHTML='<div class="empty"><div class="ei">🧾</div>Asnjë faturë ende</div>';
+  } else {
+    inv.innerHTML=clientInvoices.slice().reverse().map(invoice=>{
+      const idx=state.invoices.indexOf(invoice);
+      const itemsSummary=invoice.items.map(i=>`${i.emoji} ${i.name} ×${i.qty}`).join(', ');
+      return `<div class="sale-row" style="flex-wrap:wrap;gap:4px;cursor:pointer;margin-bottom:6px;" onclick="openInvoiceFromDetail(${idx})">
+        <div class="sale-left" style="flex:1;">
+          <span style="font-size:20px;">🧾</span>
+          <div>
+            <div style="font-size:12px;font-weight:800;">Fatura #${invoice.num}</div>
+            <div style="font-size:10px;color:#6b7280;">${itemsSummary}</div>
+            <div style="font-size:10px;color:#9ca3af;">📅 ${invoice.date} · ⏰ ${invoice.time}</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="sale-price">${invoice.total.toFixed(2)}€</div>
+          <div style="font-size:10px;color:#6b7280;">${invoice.items.reduce((s,i)=>s+i.qty,0)} cope</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('client-detail-overlay').classList.add('open');
+}
+
+function closeClientDetail(){document.getElementById('client-detail-overlay').classList.remove('open')}
+function handleClientDetailOverlay(e){if(e.target===document.getElementById('client-detail-overlay'))closeClientDetail()}
+function openInvoiceFromDetail(idx){
+  closeClientDetail();
+  setTimeout(()=>showOldInvoice(idx),200);
+}
+
+function toggleAcc(id){
+  const body=document.getElementById(id);
+  const arrow=document.getElementById('arr-'+id);
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  arrow.classList.toggle('open',!isOpen);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+renderMenu();renderManageList();updateCartBadge();
+</script>
+</body>
+</html>
