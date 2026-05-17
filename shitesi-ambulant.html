@@ -716,33 +716,62 @@ function disconnectPrinter(){
 
 async function sendToPrinter(text){
   if(!btCharacteristic){
-    showToast('⚠️ Nuk ka printer të lidhur! Shko te Cilësime.');
+    showToast('⚠️ Nuk ka printer të lidhur!');
     return false;
   }
   try {
     const encoder = new TextEncoder();
-    // ESC/POS init
-    const init = new Uint8Array([0x1B,0x40]);
-    await btCharacteristic.writeValue(init);
-    // Center align
-    const center = new Uint8Array([0x1B,0x61,0x01]);
-    await btCharacteristic.writeValue(center);
-    // Send text in chunks of 20 bytes
+
+    // ESC/POS: Initialize printer
+    await btCharacteristic.writeValueWithoutResponse(new Uint8Array([0x1B,0x40]));
+    await new Promise(r=>setTimeout(r,100));
+
+    // ESC/POS: Set character encoding (PC858)
+    await btCharacteristic.writeValueWithoutResponse(new Uint8Array([0x1B,0x74,0x13]));
+    await new Promise(r=>setTimeout(r,50));
+
+    // Send text in small chunks
     const data = encoder.encode(text);
-    const chunkSize = 100;
+    const chunkSize = 20;
     for(let i=0;i<data.length;i+=chunkSize){
-      const chunk = data.slice(i, i+chunkSize);
-      await btCharacteristic.writeValue(chunk);
-      await new Promise(r=>setTimeout(r,50));
+      const chunk = data.slice(i, Math.min(i+chunkSize, data.length));
+      try {
+        await btCharacteristic.writeValueWithoutResponse(chunk);
+      } catch(e){
+        await btCharacteristic.writeValue(chunk);
+      }
+      await new Promise(r=>setTimeout(r,30));
     }
-    // Feed and cut
-    const cut = new Uint8Array([0x0A,0x0A,0x0A,0x1D,0x56,0x01]);
-    await btCharacteristic.writeValue(cut);
+
+    // Feed paper + cut
+    await new Promise(r=>setTimeout(r,200));
+    await btCharacteristic.writeValueWithoutResponse(new Uint8Array([0x0A,0x0A,0x0A,0x0A]));
+    await new Promise(r=>setTimeout(r,100));
+    // Full cut
+    try {
+      await btCharacteristic.writeValueWithoutResponse(new Uint8Array([0x1D,0x56,0x00]));
+    } catch(e){}
+
     showToast('✅ Fatura u printua!');
     return true;
   } catch(e){
-    showToast('⚠️ Gabim printimi: '+e.message);
-    return false;
+    // Try with writeValue if writeValueWithoutResponse fails
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(text);
+      const chunkSize = 20;
+      for(let i=0;i<data.length;i+=chunkSize){
+        const chunk = data.slice(i, Math.min(i+chunkSize, data.length));
+        await btCharacteristic.writeValue(chunk);
+        await new Promise(r=>setTimeout(r,50));
+      }
+      await btCharacteristic.writeValue(new Uint8Array([0x0A,0x0A,0x0A,0x0A]));
+      showToast('✅ Fatura u printua!');
+      return true;
+    } catch(e2){
+      showToast('⚠️ Gabim: '+e2.message);
+      return false;
+    }
   }
 }
 
