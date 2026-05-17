@@ -280,6 +280,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <button class="nav-btn" onclick="goPage('shto',this)"><span class="ni">➕</span>Shto</button>
   <button class="nav-btn" onclick="goPage('stok',this)"><span class="ni">📦</span>Stok</button>
   <button class="nav-btn" onclick="goPage('raport',this)"><span class="ni">📊</span>Raport</button>
+  <button class="nav-btn" onclick="goPage('settings',this)"><span class="ni">⚙️</span>Cilësime</button>
 </nav>
 
 <!-- MENU -->
@@ -405,6 +406,65 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="card-title">🖨️ Printer Setup (Bluetooth)</div>
+    <div id="printer-status" style="padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span id="printer-status-icon">⚪</span>
+      <span id="printer-status-text">Asnjë printer i lidhur</span>
+    </div>
+    <div id="printer-name-wrap" style="display:none;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;">PRINTER I LIDHUR</div>
+      <div style="background:var(--green-light);border:1.5px solid #86efac;border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--green-dark);" id="printer-name-display">—</div>
+          <div style="font-size:11px;color:#6b7280;" id="printer-type-display">—</div>
+        </div>
+        <button onclick="disconnectPrinter()" style="background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">✕ Shkëput</button>
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="connectPrinter()">🔍 Kërko & Lidh Printer Bluetooth</button>
+    <div style="font-size:11px;color:#9ca3af;margin-top:8px;text-align:center;">Punon vetëm në Android Chrome</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚙️ Cilësimet e Printerit</div>
+    <div class="form-row">
+      <label class="form-label">Gjerësia e letrës</label>
+      <select class="form-control" id="printer-width" onchange="savePrinterSettings()">
+        <option value="58">58mm</option>
+        <option value="80">80mm</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Madhësia e fontit</label>
+      <select class="form-control" id="printer-fontsize" onchange="savePrinterSettings()">
+        <option value="small">E vogël</option>
+        <option value="medium" selected>Mesatare</option>
+        <option value="large">E madhe</option>
+      </select>
+    </div>
+    <button class="btn btn-green" style="margin-top:4px;" onclick="testPrint()">🖨️ Printo Faturë Test</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏪 Të dhënat e Biznesit</div>
+    <div class="form-row">
+      <label class="form-label">Emri i biznesit</label>
+      <input class="form-control" id="biz-name" type="text" placeholder="Besi-Godanc" oninput="saveBizSettings()">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Telefoni</label>
+      <input class="form-control" id="biz-phone" type="tel" placeholder="+383 44 000 000" oninput="saveBizSettings()">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Adresa</label>
+      <input class="form-control" id="biz-address" type="text" placeholder="Prishtinë" oninput="saveBizSettings()">
+    </div>
+  </div>
+</div>
+
 <!-- CART PANEL -->
 <div class="cart-overlay" id="cart-overlay" onclick="handleOverlayClick(event)">
   <div class="cart-panel">
@@ -526,6 +586,219 @@ function goPage(id,btn){
   if(id==='stok') renderStok();
   if(id==='raport') renderRaport();
   if(id==='shto') renderManageList();
+  if(id==='settings') initSettings();
+}
+
+/* ========== PRINTER & SETTINGS ========== */
+let btPrinter = null;
+let btCharacteristic = null;
+let printerSettings = JSON.parse(localStorage.getItem('printerSettings')||'{}');
+let bizSettings = JSON.parse(localStorage.getItem('bizSettings')||'{}');
+
+function initSettings(){
+  document.getElementById('printer-width').value = printerSettings.width||'58';
+  document.getElementById('printer-fontsize').value = printerSettings.fontsize||'medium';
+  document.getElementById('biz-name').value = bizSettings.name||'';
+  document.getElementById('biz-phone').value = bizSettings.phone||'';
+  document.getElementById('biz-address').value = bizSettings.address||'';
+  updatePrinterUI();
+}
+
+function savePrinterSettings(){
+  printerSettings.width = document.getElementById('printer-width').value;
+  printerSettings.fontsize = document.getElementById('printer-fontsize').value;
+  localStorage.setItem('printerSettings', JSON.stringify(printerSettings));
+}
+
+function saveBizSettings(){
+  bizSettings.name = document.getElementById('biz-name').value.trim();
+  bizSettings.phone = document.getElementById('biz-phone').value.trim();
+  bizSettings.address = document.getElementById('biz-address').value.trim();
+  localStorage.setItem('bizSettings', JSON.stringify(bizSettings));
+}
+
+function updatePrinterUI(){
+  const icon = document.getElementById('printer-status-icon');
+  const text = document.getElementById('printer-status-text');
+  const nameWrap = document.getElementById('printer-name-wrap');
+  if(btPrinter && btPrinter.gatt && btPrinter.gatt.connected){
+    icon.textContent='🟢';
+    text.textContent='Printer i lidhur!';
+    text.style.color='var(--green)';
+    nameWrap.style.display='block';
+    document.getElementById('printer-name-display').textContent=btPrinter.name||'Printer';
+    document.getElementById('printer-type-display').textContent='Bluetooth · '+(printerSettings.width||58)+'mm';
+  } else {
+    icon.textContent='⚪';
+    text.textContent='Asnjë printer i lidhur';
+    text.style.color='';
+    nameWrap.style.display='none';
+    btPrinter=null; btCharacteristic=null;
+  }
+}
+
+async function connectPrinter(){
+  if(!navigator.bluetooth){
+    showToast('⚠️ Bluetooth nuk suportohet — përdor Chrome Android!');
+    return;
+  }
+  try {
+    showToast('🔍 Duke kërkuar printer...');
+    const device = await navigator.bluetooth.requestDevice({
+      filters:[
+        {namePrefix:'PT'},
+        {namePrefix:'Mobile Printer'},
+        {namePrefix:'Printer'},
+        {namePrefix:'MTP'},
+        {namePrefix:'BlueTooth Printer'},
+      ],
+      optionalServices:['000018f0-0000-1000-8000-00805f9b34fb','e7810a71-73ae-499d-8c15-faa9aef0c3f2','49535343-fe7d-4ae5-8fa9-9fafd205e455']
+    });
+    device.addEventListener('gattserverdisconnected', ()=>{
+      btPrinter=null;btCharacteristic=null;
+      updatePrinterUI();
+      showToast('⚠️ Printeri u shkëput!');
+    });
+    showToast('🔗 Duke u lidhur...');
+    const server = await device.gatt.connect();
+    // Try common thermal printer services
+    const services = ['000018f0-0000-1000-8000-00805f9b34fb','e7810a71-73ae-499d-8c15-faa9aef0c3f2','49535343-fe7d-4ae5-8fa9-9fafd205e455'];
+    const chars = ['00002af1-0000-1000-8000-00805f9b34fb','bef8d6c9-9c21-4c9e-b632-bd58c1009f9f','49535343-8841-43f4-a8d4-ecbe34729bb3'];
+    let found = false;
+    for(const svc of services){
+      try {
+        const service = await server.getPrimaryService(svc);
+        for(const chr of chars){
+          try {
+            const ch = await service.getCharacteristic(chr);
+            btCharacteristic = ch;
+            btPrinter = device;
+            found = true;
+            break;
+          } catch(e){}
+        }
+        if(found) break;
+      } catch(e){}
+    }
+    if(!found){
+      // Try getting any writable characteristic
+      try {
+        const svcs = await server.getPrimaryServices();
+        for(const s of svcs){
+          const chrs = await s.getCharacteristics();
+          for(const c of chrs){
+            if(c.properties.write||c.properties.writeWithoutResponse){
+              btCharacteristic=c; btPrinter=device; found=true; break;
+            }
+          }
+          if(found) break;
+        }
+      } catch(e){}
+    }
+    if(found){
+      showToast(`✅ ${device.name} u lidh!`);
+    } else {
+      showToast('⚠️ Printer u gjet por nuk u lidh. Provo sërish.');
+    }
+    updatePrinterUI();
+  } catch(e){
+    if(e.name!=='NotFoundError') showToast('⚠️ '+e.message);
+    else showToast('Asnjë printer i zgjedhur.');
+  }
+}
+
+function disconnectPrinter(){
+  if(btPrinter&&btPrinter.gatt) btPrinter.gatt.disconnect();
+  btPrinter=null; btCharacteristic=null;
+  updatePrinterUI();
+  showToast('Printeri u shkëput.');
+}
+
+async function sendToPrinter(text){
+  if(!btCharacteristic){
+    showToast('⚠️ Nuk ka printer të lidhur! Shko te Cilësime.');
+    return false;
+  }
+  try {
+    const encoder = new TextEncoder();
+    // ESC/POS init
+    const init = new Uint8Array([0x1B,0x40]);
+    await btCharacteristic.writeValue(init);
+    // Center align
+    const center = new Uint8Array([0x1B,0x61,0x01]);
+    await btCharacteristic.writeValue(center);
+    // Send text in chunks of 20 bytes
+    const data = encoder.encode(text);
+    const chunkSize = 100;
+    for(let i=0;i<data.length;i+=chunkSize){
+      const chunk = data.slice(i, i+chunkSize);
+      await btCharacteristic.writeValue(chunk);
+      await new Promise(r=>setTimeout(r,50));
+    }
+    // Feed and cut
+    const cut = new Uint8Array([0x0A,0x0A,0x0A,0x1D,0x56,0x01]);
+    await btCharacteristic.writeValue(cut);
+    showToast('✅ Fatura u printua!');
+    return true;
+  } catch(e){
+    showToast('⚠️ Gabim printimi: '+e.message);
+    return false;
+  }
+}
+
+function buildReceiptText(inv){
+  const biz = bizSettings;
+  const w = parseInt(printerSettings.width||58);
+  const line = '-'.repeat(w===58?32:42);
+  const dline = '='.repeat(w===58?32:42);
+  let t = '';
+  t += centerText(biz.name||'BESI-GODANC', w) + '\n';
+  if(biz.phone) t += centerText(biz.phone, w) + '\n';
+  if(biz.address) t += centerText(biz.address, w) + '\n';
+  t += dline + '\n';
+  t += `Fatura: #${inv.num}\n`;
+  t += `Date: ${inv.date}  Ora: ${inv.time}\n`;
+  if(inv.clientName) t += `Klienti: ${inv.clientName}\n`;
+  t += line + '\n';
+  t += padLine('Artikulli','Sas','Total',w) + '\n';
+  t += line + '\n';
+  inv.items.forEach(item=>{
+    t += padLine(item.name, `${item.qty}x${item.price.toFixed(2)}`, item.total.toFixed(2)+'E', w) + '\n';
+  });
+  t += dline + '\n';
+  const totalItems = inv.items.reduce((s,i)=>s+i.qty,0);
+  t += `Artikuj: ${totalItems} cope\n`;
+  t += `TOTAL: ${inv.total.toFixed(2)} EUR\n`;
+  t += dline + '\n';
+  t += centerText('Faleminderit!', w) + '\n';
+  t += '\n\n\n';
+  return t;
+}
+
+function centerText(text, width){
+  const w = width===58?32:42;
+  const pad = Math.max(0, Math.floor((w - text.length)/2));
+  return ' '.repeat(pad) + text;
+}
+
+function padLine(left, mid, right, width){
+  const w = width===58?32:42;
+  const available = w - right.length - mid.length;
+  const leftTrim = left.substring(0, Math.max(1, available-1));
+  const spaces = Math.max(1, w - leftTrim.length - mid.length - right.length);
+  return leftTrim + ' '.repeat(Math.floor(spaces/2)) + mid + ' '.repeat(Math.ceil(spaces/2)) + right;
+}
+
+async function testPrint(){
+  const testInv = {
+    num:'TEST', date: new Date().toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'}),
+    time: new Date().toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit'}),
+    clientName: null,
+    items:[{name:'Byrek',price:1.00,qty:2,total:2.00},{name:'Kafe',price:0.80,qty:1,total:0.80}],
+    total:2.80
+  };
+  const text = buildReceiptText(testInv);
+  await sendToPrinter(text);
 }
 
 /* EMOJI */
@@ -883,6 +1156,16 @@ function closeFatura(){document.getElementById('fatura-overlay').classList.remov
 function handleFaturaOverlay(e){if(e.target===document.getElementById('fatura-overlay'))closeFatura()}
 
 function printFatura(){
+  // Nëse ka printer Bluetooth të lidhur — printo direkt
+  if(btCharacteristic && btPrinter && btPrinter.gatt && btPrinter.gatt.connected){
+    const idx = state.invoices.length - 1;
+    if(idx >= 0){
+      const text = buildReceiptText(state.invoices[idx]);
+      sendToPrinter(text);
+      return;
+    }
+  }
+  // Fallback — print normal
   const content=document.getElementById('fatura-content').innerHTML;
   const ta=document.getElementById('thermal-print-area');
   ta.innerHTML=content;
